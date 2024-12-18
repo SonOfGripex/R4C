@@ -34,6 +34,7 @@ def add_robot(request):
     else:
         return JsonResponse({'error':'invalid method'}, status=400)
 
+
 @csrf_exempt
 def get_robots_excel(request):
     last_week_start = datetime.now() - timedelta(days=7)
