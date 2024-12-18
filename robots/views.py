@@ -1,8 +1,10 @@
+from datetime import datetime, timedelta
 from django.forms.models import model_to_dict
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt #Отключил проверку csrf токена
 from .forms import RobotForm
 from .models import Robot
+from .utils import create_robots_excel
 
 
 @csrf_exempt
@@ -31,3 +33,15 @@ def add_robot(request):
             return JsonResponse(form.errors, status=400)
     else:
         return JsonResponse({'error':'invalid method'}, status=400)
+
+
+@csrf_exempt
+def get_robots_excel(request):
+    last_week_start = datetime.now() - timedelta(days=7)
+    robots = Robot.objects.filter(created__gte=last_week_start)
+    if not robots:
+        return JsonResponse({'error': 'no robots found'}, status=400)
+    excel_data = create_robots_excel(robots)
+    response = HttpResponse(excel_data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=robots_data.xlsx'
+    return response
